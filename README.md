@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Interactive Table
 
-## Getting Started
+A sortable, filterable data table built with Next.js, TypeScript, and
+Tailwind CSS. No table libraries — sorting, filtering, pagination,
+selection, and CSV export are all written by hand on top of a single
+`useMemo` derivation chain.
 
-First, run the development server:
+## Features
+
+- Click-to-sort columns (ascending → descending → none), with a real
+  `<button>` inside each sortable `<th>` and `aria-sort` set correctly —
+  keyboard and screen-reader accessible, not just a clickable header glyph
+- Real-time keyword filter, debounced so typing doesn't recompute the
+  derived list on every keystroke
+- Pagination, computed strictly after filtering and sorting (never before —
+  filtering first is what prevents "empty page" bugs when a filter narrows
+  the result set)
+- Row selection with bulk actions (Delete, Mark Complete); selection is
+  keyed by row id in a `Set`, so it survives filtering, sorting, and page
+  changes instead of silently dropping
+- Per-row inline edit and delete, each action labelled with the specific
+  row's name (`aria-label="Edit row for Olivia García"`), not a bare "Edit"
+  repeated identically across every row
+- Column show/hide toggle — hiding a column removes it from header, body,
+  and CSV export alike; at least one column must always stay visible
+- CSV export via an in-browser `Blob`, respecting the current filter, sort
+  order, and visible columns (and spanning all matching rows, not just the
+  current page)
+- Sticky table header on scroll
+- Distinct empty states for "no data at all" vs "no rows match your filter"
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open http://localhost:3000.
