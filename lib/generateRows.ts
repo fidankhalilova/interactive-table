@@ -51,6 +51,10 @@ const ROLES = [
 ];
 const STATUSES: Row["status"][] = ["active", "invited", "suspended"];
 
+// Change the row count from this constant!!
+
+export const DEFAULT_ROW_COUNT = 700;
+
 // Simple deterministic PRNG (mulberry32) so the generated set is stable
 // across renders/reloads rather than re-randomizing on every mount, which
 // would make manual testing of sort/filter behavior confusing.

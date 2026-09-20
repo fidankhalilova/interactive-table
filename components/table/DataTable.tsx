@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { generateRows } from "@/lib/generateRows";
+import { useState, useMemo } from "react";
+import { generateRows, DEFAULT_ROW_COUNT } from "@/lib/generateRows";
 import { columns } from "@/lib/columns";
 import { sortRows, nextSortState } from "@/lib/sorting";
 import { filterRows } from "@/lib/filtering";
@@ -11,20 +11,17 @@ import { ColumnKey, SortState, Filters, Row } from "@/lib/types";
 import TableHeader from "./TableHeader";
 import TableBody from "./TableBody";
 import FilterInput from "./FilterInput";
-import Pagination from "./Pagination";
 import BulkActionsBar from "./BulkActionsBar";
 import ColumnToggle from "./ColumnToggle";
 import ExportCsvButton from "./ExportCsvButton";
 
 export default function DataTable() {
-  const [rows, setRows] = useState(() => generateRows(50));
+  const [rows, setRows] = useState(() => generateRows(DEFAULT_ROW_COUNT));
   const [sortState, setSortState] = useState<SortState>({
     key: null,
     direction: "none",
   });
   const [keywordInput, setKeywordInput] = useState("");
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<Set<ColumnKey>>(
@@ -42,10 +39,6 @@ export default function DataTable() {
 
   const debouncedKeyword = useDebouncedValue(keywordInput, 250);
   const filters: Filters = { keyword: debouncedKeyword };
-
-  useEffect(() => {
-    setPage(0);
-  }, [debouncedKeyword, pageSize]);
 
   const handleSort = (key: ColumnKey) => {
     const next = nextSortState(sortState.key, sortState.direction, key);
@@ -81,13 +74,11 @@ export default function DataTable() {
     return sorted;
   }, [rows, filters.keyword, sortState.key, sortState.direction]);
 
-  const pageRows = useMemo(() => {
-    const start = page * pageSize;
-    return sortedFilteredRows.slice(start, start + pageSize);
-  }, [sortedFilteredRows, page, pageSize]);
-
-  const visibleIdsOnPage = useMemo(() => pageRows.map((r) => r.id), [pageRows]);
-  const selectAllState = getSelectAllState(visibleIdsOnPage);
+  const visibleIds = useMemo(
+    () => sortedFilteredRows.map((r) => r.id),
+    [sortedFilteredRows],
+  );
+  const selectAllState = getSelectAllState(visibleIds);
 
   const handleBulkDelete = () => {
     const remaining = rows.filter((row) => !selectedIds.has(row.id));
@@ -148,17 +139,22 @@ export default function DataTable() {
         onMarkComplete={handleBulkMarkComplete}
         onClearSelection={clearSelection}
       />
-      <div className="border rounded overflow-auto max-h-[70vh]">
+      <div className="text-xs text-gray-500">
+        {sortedFilteredRows.length} row
+        {sortedFilteredRows.length === 1 ? "" : "s"}
+        {isFiltered ? ` (filtered from ${rows.length})` : ""}
+      </div>
+      <div className="border rounded overflow-auto max-h-[80vh]">
         <table className="w-full border-collapse min-w-150">
           <TableHeader
             visibleColumns={visibleColumns}
             sortState={sortState}
             onSort={handleSort}
             selectAllState={selectAllState}
-            onToggleAll={() => toggleAllVisible(visibleIdsOnPage)}
+            onToggleAll={() => toggleAllVisible(visibleIds)}
           />
           <TableBody
-            rows={pageRows}
+            rows={sortedFilteredRows}
             visibleColumns={visibleColumns}
             hasAnyData={rows.length > 0}
             isFiltered={isFiltered}
@@ -172,13 +168,6 @@ export default function DataTable() {
           />
         </table>
       </div>
-      <Pagination
-        page={page}
-        pageSize={pageSize}
-        totalRows={sortedFilteredRows.length}
-        onPageChange={setPage}
-        onPageSizeChange={setPageSize}
-      />
     </div>
   );
 }
